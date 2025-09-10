@@ -733,18 +733,11 @@ deployDockerImageToInternalACR() {
 
     local scriptDir
     scriptDir="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )";
-    local contextDir
-    contextDir="$(readlink -f "$scriptDir/../")"
-    local dockerfilePath
-    dockerfilePath="$(readlink -f "$scriptDir/../docker/Dockerfile-backend")"
-    # Convert to Windows path for az CLI compatibility
-    contextDir="$(wslpath -w "$contextDir")"
-    dockerfilePath="$(wslpath -w "$dockerfilePath")"
     az acr build --only-show-errors \
-        --registry "$containerRegistry" \
-        --file "$dockerfilePath" \
-        --image "$GRAPHRAG_IMAGE" \
-        "$contextDir"
+        --registry $containerRegistry \
+        --file $scriptDir/../docker/Dockerfile-backend \
+        --image $GRAPHRAG_IMAGE \
+        $scriptDir/../
     exitIfCommandFailed $? "Error deploying docker image, exiting..."
 }
 
