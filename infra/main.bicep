@@ -87,7 +87,7 @@ param llmModelName string = 'gpt-4o'
 param llmModelDeploymentName string = 'gpt-4o'
 
 @description('Model version of the AOAI LLM model to use.')
-@allowed(['2024-08-06', 'turbo-2024-04-09'])
+@allowed(['2024-08-06', 'turbo-2024-04-09', '2024-07-18'])
 param llmModelVersion string = '2024-08-06'
 
 @description('Quota of the AOAI LLM model to use.')
@@ -166,7 +166,7 @@ module aksWorkloadIdentityRBAC 'core/rbac/workload-identity-rbac.bicep' = {
     appInsightsName: appInsights.outputs.name
     cosmosDbName: cosmosdb.outputs.name
     storageName: storage.outputs.name
-    aoaiId: deployAoai ? aoai.outputs.id : existingAoaiId
+    aoaiId: deployAoai ? aoai!.outputs.id : existingAoaiId
   }
 }
 
@@ -387,7 +387,7 @@ module cosmosDbPrivateEndpoint 'core/vnet/private-endpoint.bicep' = if (enablePr
     privateLinkServiceId: cosmosdb.outputs.id
     subnetId: vnet.outputs.aksSubnetId
     groupId: 'Sql'
-    privateDnsZoneConfigs: enablePrivateEndpoints ? privatelinkPrivateDns.outputs.cosmosDbPrivateDnsZoneConfigs : []
+    privateDnsZoneConfigs: enablePrivateEndpoints ? privatelinkPrivateDns!.outputs.cosmosDbPrivateDnsZoneConfigs : []
   }
 }
 
@@ -399,7 +399,7 @@ module blobStoragePrivateEndpoint 'core/vnet/private-endpoint.bicep' = if (enabl
     privateLinkServiceId: storage.outputs.id
     subnetId: vnet.outputs.aksSubnetId
     groupId: 'blob'
-    privateDnsZoneConfigs: enablePrivateEndpoints ? privatelinkPrivateDns.outputs.blobStoragePrivateDnsZoneConfigs : []
+    privateDnsZoneConfigs: enablePrivateEndpoints ? privatelinkPrivateDns!.outputs.blobStoragePrivateDnsZoneConfigs : []
   }
 }
 
@@ -411,7 +411,7 @@ module aiSearchPrivateEndpoint 'core/vnet/private-endpoint.bicep' = if (enablePr
     privateLinkServiceId: aiSearch.outputs.id
     subnetId: vnet.outputs.aksSubnetId
     groupId: 'searchService'
-    privateDnsZoneConfigs: enablePrivateEndpoints ? privatelinkPrivateDns.outputs.aiSearchPrivateDnsZoneConfigs : []
+    privateDnsZoneConfigs: enablePrivateEndpoints ? privatelinkPrivateDns!.outputs.aiSearchPrivateDnsZoneConfigs : []
   }
 }
 
@@ -420,10 +420,10 @@ module privateLinkScopePrivateEndpoint 'core/vnet/private-endpoint.bicep' = if (
   params: {
     privateEndpointName: '${abbrs.privateEndpoint}pls-${resourceBaseNameFinal}'
     location: location
-    privateLinkServiceId: enablePrivateEndpoints ? azureMonitorPrivateLinkScope.outputs.id : ''
+    privateLinkServiceId: enablePrivateEndpoints ? azureMonitorPrivateLinkScope!.outputs.id : ''
     subnetId: vnet.outputs.aksSubnetId
     groupId: 'azuremonitor'
-    privateDnsZoneConfigs: enablePrivateEndpoints ? privatelinkPrivateDns.outputs.azureMonitorPrivateDnsZoneConfigs : []
+    privateDnsZoneConfigs: enablePrivateEndpoints ? privatelinkPrivateDns!.outputs.azureMonitorPrivateDnsZoneConfigs : []
   }
 }
 
@@ -444,12 +444,12 @@ module deploymentScript 'core/scripts/deployment-script.bicep' = if (!empty(mana
     aks_service_account_name: aksServiceAccountName
     deployAoai: deployAoai
     aoai_endpoint: aksWorkloadIdentityRBAC.outputs.aoaiEndpoint
-    aoai_llm_model: deployAoai ? aoai.outputs.llmModel : llmModelName
-    aoai_llm_model_deployment_name: deployAoai ? aoai.outputs.llmModelDeploymentName : llmModelDeploymentName
-    aoai_llm_model_version: deployAoai ? aoai.outputs.llmModelVersion : llmModelVersion
-    aoai_embedding_model: deployAoai ? aoai.outputs.embeddingModel : embeddingModelName
+    aoai_llm_model: deployAoai ? aoai!.outputs.llmModel : llmModelName
+    aoai_llm_model_deployment_name: deployAoai ? aoai!.outputs.llmModelDeploymentName : llmModelDeploymentName
+    aoai_llm_model_version: deployAoai ? aoai!.outputs.llmModelVersion : llmModelVersion
+    aoai_embedding_model: deployAoai ? aoai!.outputs.embeddingModel : embeddingModelName
     aoai_embedding_model_deployment_name: deployAoai
-      ? aoai.outputs.embeddingModelDeploymentName
+      ? aoai!.outputs.embeddingModelDeploymentName
       : embeddingModelDeploymentName
     app_hostname: appHostname
     app_insights_connection_string: appInsights.outputs.connectionString
@@ -466,27 +466,27 @@ output deployer_principal_id string = deployer().objectId
 output azure_location string = location
 output azure_tenant_id string = tenant().tenantId
 output azure_ai_search_name string = aiSearch.outputs.name
-output azure_acr_login_server string = deployAcr ? acr.outputs.loginServer : existingAcrLoginServer
-output azure_acr_name string = deployAcr ? acr.outputs.name : ''
+output azure_acr_login_server string = deployAcr ? acr!.outputs.loginServer : existingAcrLoginServer
+output azure_acr_name string = deployAcr ? acr!.outputs.name : ''
 output azure_aks_name string = aks.outputs.name
 output azure_aks_controlplanefqdn string = aks.outputs.controlPlaneFqdn
 output azure_aks_managed_rg string = aks.outputs.managedResourceGroup
 output azure_aks_service_account_name string = aksServiceAccountName
 // conditionally output AOAI endpoint information if it was deployed
-output azure_aoai_endpoint string = deployAoai ? aoai.outputs.endpoint : aksWorkloadIdentityRBAC.outputs.aoaiEndpoint
-output azure_aoai_llm_model string = deployAoai ? aoai.outputs.llmModel : llmModelName
+output azure_aoai_endpoint string = deployAoai ? aoai!.outputs.endpoint : aksWorkloadIdentityRBAC.outputs.aoaiEndpoint
+output azure_aoai_llm_model string = deployAoai ? aoai!.outputs.llmModel : llmModelName
 output azure_aoai_llm_model_deployment_name string = deployAoai
-  ? aoai.outputs.llmModelDeploymentName
+  ? aoai!.outputs.llmModelDeploymentName
   : llmModelDeploymentName
-output azure_aoai_llm_model_quota int = deployAoai ? aoai.outputs.llmModelQuota : 0
-output azure_aoai_llm_model_api_version string = deployAoai ? aoai.outputs.llmModelVersion : llmModelVersion
-output azure_aoai_embedding_model string = deployAoai ? aoai.outputs.embeddingModel : embeddingModelName
+output azure_aoai_llm_model_quota int = deployAoai ? aoai!.outputs.llmModelQuota : 0
+output azure_aoai_llm_model_api_version string = deployAoai ? aoai!.outputs.llmModelVersion : llmModelVersion
+output azure_aoai_embedding_model string = deployAoai ? aoai!.outputs.embeddingModel : embeddingModelName
 output azure_aoai_embedding_model_deployment_name string = deployAoai
-  ? aoai.outputs.embeddingModelDeploymentName
+  ? aoai!.outputs.embeddingModelDeploymentName
   : embeddingModelDeploymentName
-output azure_aoai_embedding_model_quota int = deployAoai ? aoai.outputs.embeddingModelQuota : 0
+output azure_aoai_embedding_model_quota int = deployAoai ? aoai!.outputs.embeddingModelQuota : 0
 output azure_aoai_embedding_model_api_version string = deployAoai
-  ? aoai.outputs.embeddingModelVersion
+  ? aoai!.outputs.embeddingModelVersion
   : embeddingModelVersion
 output azure_apim_gateway_url string = apim.outputs.apimGatewayUrl
 output azure_apim_name string = apim.outputs.name
@@ -498,7 +498,7 @@ output azure_cosmosdb_name string = cosmosdb.outputs.name
 output azure_cosmosdb_id string = cosmosdb.outputs.id
 output azure_dns_zone_name string = privateDnsZone.outputs.name
 output azure_private_dns_zones array = enablePrivateEndpoints
-  ? union(privatelinkPrivateDns.outputs.privateDnsZones, [privateDnsZone.outputs.name])
+  ? union(privatelinkPrivateDns!.outputs.privateDnsZones, [privateDnsZone.outputs.name])
   : []
 output azure_storage_account string = storage.outputs.name
 output azure_storage_account_blob_url string = storage.outputs.primaryEndpoints.blob

@@ -100,6 +100,7 @@ function configure_registry_credentials() {
     printf "Configuring registry credentials...\n"
     ACR_ID=$(az acr show --name $REGISTRY_NAME --resource-group $RESOURCE_GROUP --query id --output tsv)
     az role assignment create --assignee $WEBAPP_IDENTITY_CLIENT_ID \
+        --assignee-principal-type ServicePrincipal \
         --role AcrPull \
         --scope $ACR_ID > /dev/null
     printf "Registry credentials configured.\n"

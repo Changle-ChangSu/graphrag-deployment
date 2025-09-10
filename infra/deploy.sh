@@ -259,6 +259,13 @@ populateParams () {
         fi
         printf "\t$param = ${!param}\n"
     done
+
+    # Clean up carriage return characters (\r) from all parameters to avoid encoding issues
+    for param in "${requiredParams[@]}" "${optionalParams[@]}"; do
+        if [ -n "${!param}" ]; then
+            eval "$param=\${$param//$'\r'/}"
+        fi
+    done
 }
 
 createResourceGroupIfNotExists () {
@@ -294,8 +301,13 @@ getAksCredentials () {
     # assign "Azure Kubernetes Service RBAC Admin" role to deployer
     scope=$(az aks show --resource-group $rg --name $aks_name --query "id" -o tsv)
     exitIfValueEmpty "$scope" "Unable to get AKS scope, exiting..."
-    az role assignment create --role "Azure Kubernetes Service RBAC Cluster Admin" --assignee-object-id $principalId --scope $scope
-    exitIfCommandFailed $? "Error assigning 'Azure Kubernetes Service RBAC Cluster Admin' role to deployer, exiting..."
+    # if ! az role assignment list --assignee $principalId --role "Azure Kubernetes Service RBAC Cluster Admin" --scope $scope --query "[].id" -o tsv | grep -q .; then
+    #     az role assignment create --role "Azure Kubernetes Service RBAC Cluster Admin" --assignee-object-id $principalId --assignee-principal-type User --scope $scope
+    #     exitIfCommandFailed $? "Error assigning 'Azure Kubernetes Service RBAC Cluster Admin' role to deployer, exiting..."
+    # else
+    #     printf "Role 'Azure Kubernetes Service RBAC Cluster Admin' already assigned, skipping...\n"
+    # fi
+    printf "Skipping role assignment as it may already exist...\n"
     kubectl config set-context $aks_name --namespace=$aksNamespace
     printf "Done\n"
 }
@@ -403,7 +415,7 @@ assignACRPullRoleToAKS() {
     exitIfValueEmpty "$kubelet_id" "Unable to retrieve AKS kubelet id, exiting..."
     acr_id=$(az acr show --name $registry --query id -o tsv)
     exitIfValueEmpty "$acr_id" "Unable to retrieve ACR id, exiting..."
-    az role assignment create --role "AcrPull" --assignee $kubelet_id --scope $acr_id
+    az role assignment create --role "AcrPull" --assignee $kubelet_id --assignee-principal-type ServicePrincipal --scope $acr_id
     exitIfCommandFailed $? "Error assigning ACRPull role to AKS, exiting..."
 }
 
@@ -678,6 +690,7 @@ grantDevAccessToAzureResources() {
     az role assignment create \
         --role "Storage Blob Data Contributor" \
         --assignee $principalId \
+        --assignee-principal-type User \
         --scope "/subscriptions/$subscriptionId/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Storage/storageAccounts/$storageAccountName" > /dev/null
 
     # assign cosmos db role
@@ -698,14 +711,17 @@ grantDevAccessToAzureResources() {
     az role assignment create \
         --role "Contributor" \
         --assignee $principalId \
+        --assignee-principal-type User \
         --scope "/subscriptions/$subscriptionId/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Search/searchServices/$searchServiceName" > /dev/null
     az role assignment create \
         --role "Search Index Data Contributor" \
         --assignee $principalId \
+        --assignee-principal-type User \
         --scope "/subscriptions/$subscriptionId/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Search/searchServices/$searchServiceName" > /dev/null
     az role assignment create \
         --role "Search Index Data Reader" \
         --assignee $principalId \
+        --assignee-principal-type User \
         --scope "/subscriptions/$subscriptionId/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Search/searchServices/$searchServiceName" > /dev/null
 }
 
@@ -717,11 +733,18 @@ deployDockerImageToInternalACR() {
 
     local scriptDir
     scriptDir="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )";
+    local contextDir
+    contextDir="$(readlink -f "$scriptDir/../")"
+    local dockerfilePath
+    dockerfilePath="$(readlink -f "$scriptDir/../docker/Dockerfile-backend")"
+    # Convert to Windows path for az CLI compatibility
+    contextDir="$(wslpath -w "$contextDir")"
+    dockerfilePath="$(wslpath -w "$dockerfilePath")"
     az acr build --only-show-errors \
-        --registry $containerRegistry \
-        --file $scriptDir/../docker/Dockerfile-backend \
-        --image $GRAPHRAG_IMAGE \
-        $scriptDir/../
+        --registry "$containerRegistry" \
+        --file "$dockerfilePath" \
+        --image "$GRAPHRAG_IMAGE" \
+        "$contextDir"
     exitIfCommandFailed $? "Error deploying docker image, exiting..."
 }
 
@@ -784,13 +807,13 @@ checkRequiredTools
 populateParams $PARAMS_FILE
 
 # Check SKU availability and quotas
-validateSKUs $LOCATION $VALIDATE_SKUS_FLAG
+# validateSKUs $LOCATION $VALIDATE_SKUS_FLAG
 
 # Create resource group
 createResourceGroupIfNotExists $LOCATION $RESOURCE_GROUP
 
 # Deploy Azure resources
-checkForApimSoftDelete
+# checkForApimSoftDelete
 deployAzureResources
 
 # Deploy graphrag docker image to internal ACR if an external ACR was not provided

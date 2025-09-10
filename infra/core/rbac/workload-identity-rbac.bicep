@@ -60,7 +60,7 @@ module aoaiRBAC 'aoai-rbac.bicep' = {
   name: 'aoai-rbac-assignments'
   scope: resourceGroup(splitId[2], splitId[4])
   params: {
-    name: splitId[8]
+    name: replace(splitId[8], '\r', '')
     roleAssignments: [
       {
         principalId: principalId

@@ -61,6 +61,9 @@ param subnetId string
 resource publicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' = {
   name: publicIpName
   location: location
+  tags: {
+    status: 'approved'
+  }
   sku: {
     name: publicIpSku
   }
