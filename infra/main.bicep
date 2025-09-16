@@ -80,7 +80,7 @@ param deployAoai bool = true
 param existingAoaiId string = ''
 
 @description('Name of the AOAI LLM model to use. Must match official model id. For more information: https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models')
-@allowed(['gpt-4', 'gpt-4o', 'gpt-4o-mini'])
+@allowed(['gpt-4', 'gpt-4o', 'gpt-4o-mini', 'gpt-5-mini'])
 param llmModelName string = 'gpt-4o'
 
 @description('Deployment name of the AOAI LLM model to use. For more information: https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models')
