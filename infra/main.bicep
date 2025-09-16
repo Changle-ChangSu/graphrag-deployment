@@ -87,7 +87,7 @@ param llmModelName string = 'gpt-4o'
 param llmModelDeploymentName string = 'gpt-4o'
 
 @description('Model version of the AOAI LLM model to use.')
-@allowed(['2024-08-06', 'turbo-2024-04-09', '2024-07-18'])
+@allowed(['2024-08-06', 'turbo-2024-04-09', '2024-07-18', '2025-08-07', '2025-04-14'])
 param llmModelVersion string = '2024-08-06'
 
 @description('Quota of the AOAI LLM model to use.')
@@ -382,7 +382,7 @@ module azureMonitorPrivateLinkScope 'core/monitor/private-link-scope.bicep' = if
 module cosmosDbPrivateEndpoint 'core/vnet/private-endpoint.bicep' = if (enablePrivateEndpoints) {
   name: 'cosmosDb-private-endpoint-deployment'
   params: {
-    privateEndpointName: '${abbrs.privateEndpoint}cosmos-${cosmosdb.outputs.name}-2'
+    privateEndpointName: '${abbrs.privateEndpoint}cosmos-${cosmosdb.outputs.name}'
     location: location
     privateLinkServiceId: cosmosdb.outputs.id
     subnetId: vnet.outputs.aksSubnetId

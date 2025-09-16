@@ -753,7 +753,6 @@ usage() {
    echo "  -d     Disable private endpoint usage."
    echo "  -g     Developer mode. Grants deployer of this script access to Azure Storage, AI Search, and CosmosDB. Will disable private endpoints (-d) and enable debug mode."
    echo "  -s     Skip validation of SKU availability and quota for a faster deployment"
-   echo "  -o     Skip Azure resource deployment, only run Helm upgrade for configuration updates"
    echo "  -p     A JSON file containing the deployment parameters (deploy.parameters.json)."
    echo
 }
@@ -764,8 +763,7 @@ ENABLE_PRIVATE_ENDPOINTS=true
 VALIDATE_SKUS_FLAG=true
 GRANT_DEV_ACCESS=0 # false
 PARAMS_FILE=""
-HELM_ONLY=false
-while getopts ":dgsp:oh" option; do
+while getopts ":dgsp:h" option; do
     case "${option}" in
         d)
             ENABLE_PRIVATE_ENDPOINTS=false
@@ -779,9 +777,6 @@ while getopts ":dgsp:oh" option; do
             ;;
         p)
             PARAMS_FILE=${OPTARG}
-            ;;
-        o)
-            HELM_ONLY=true
             ;;
         h | *)
             usage
@@ -805,23 +800,17 @@ checkRequiredTools
 populateParams $PARAMS_FILE
 
 # Check SKU availability and quotas
-# validateSKUs $LOCATION $VALIDATE_SKUS_FLAG
+validateSKUs $LOCATION $VALIDATE_SKUS_FLAG
 
 # Create resource group
-if [ "$HELM_ONLY" = false ]; then
-    createResourceGroupIfNotExists $LOCATION $RESOURCE_GROUP
-fi
+createResourceGroupIfNotExists $LOCATION $RESOURCE_GROUP
 
 # Deploy Azure resources
 # checkForApimSoftDelete
-if [ "$HELM_ONLY" = true ]; then
-    echo "Skipping Azure resource deployment as requested."
-else
-    deployAzureResources
-fi
+deployAzureResources
 
 # Deploy graphrag docker image to internal ACR if an external ACR was not provided
-if [ "$HELM_ONLY" = false ] && [ -z "$CONTAINER_REGISTRY_LOGIN_SERVER" ]; then
+if [ -z "$CONTAINER_REGISTRY_LOGIN_SERVER" ]; then
     deployDockerImageToInternalACR
 fi
 
