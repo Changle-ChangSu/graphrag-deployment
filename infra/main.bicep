@@ -80,7 +80,7 @@ param deployAoai bool = true
 param existingAoaiId string = ''
 
 @description('Name of the AOAI LLM model to use. Must match official model id. For more information: https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models')
-@allowed(['gpt-4', 'gpt-4o', 'gpt-4o-mini', 'gpt-5-mini'])
+@allowed(['gpt-4', 'gpt-4o', 'gpt-4o-mini', 'gpt-5-mini', 'gpt-4.1-mini'])
 param llmModelName string = 'gpt-4o'
 
 @description('Deployment name of the AOAI LLM model to use. For more information: https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models')
@@ -382,7 +382,7 @@ module azureMonitorPrivateLinkScope 'core/monitor/private-link-scope.bicep' = if
 module cosmosDbPrivateEndpoint 'core/vnet/private-endpoint.bicep' = if (enablePrivateEndpoints) {
   name: 'cosmosDb-private-endpoint-deployment'
   params: {
-    privateEndpointName: '${abbrs.privateEndpoint}cosmos-${cosmosdb.outputs.name}'
+    privateEndpointName: '${abbrs.privateEndpoint}cosmos-${cosmosdb.outputs.name}-2'
     location: location
     privateLinkServiceId: cosmosdb.outputs.id
     subnetId: vnet.outputs.aksSubnetId
