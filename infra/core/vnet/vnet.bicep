@@ -20,6 +20,9 @@ param nsgID string
 resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' = {
   name: vnetName
   location: location
+  tags: {
+    status: 'approved'
+  }
   properties: {
     addressSpace: {
       addressPrefixes: [

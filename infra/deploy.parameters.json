@@ -1,4 +1,11 @@
 {
-  "LOCATION": "__LOCATION__",
-  "RESOURCE_GROUP": "__RESOURCE_GROUP__"
+  "LOCATION": "eastus",
+  "RESOURCE_GROUP": "rg-tccc-tpo-baseline-data-mapper-poc",
+  "GRAPHRAG_API_BASE": "https://aoai-plsignore.openai.azure.com/",
+  "GRAPHRAG_API_VERSION": "2025-04-01-preview",
+  "GRAPHRAG_LLM_MODEL": "gpt-4o",
+  "GRAPHRAG_LLM_DEPLOYMENT_NAME": "gpt-4o",
+  "GRAPHRAG_EMBEDDING_MODEL": "text-embedding-ada-002",
+  "GRAPHRAG_EMBEDDING_DEPLOYMENT_NAME":"text-embedding-ada-002",
+  "RESOURCE_BASE_NAME": "plsignore"
 }

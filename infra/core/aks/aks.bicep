@@ -63,6 +63,9 @@ resource aks 'Microsoft.ContainerService/managedClusters@2024-09-02-preview' = {
   identity: {
     type: 'SystemAssigned'
   }
+  tags: {
+    status: 'approved'
+  }
   properties: {
     enableRBAC: true
     disableLocalAccounts: false
@@ -147,6 +150,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2024-09-02-preview' = {
       }
       tags: {
         workload: 'graphrag'
+        status: 'approved'
       }
       type: 'VirtualMachineScaleSets'
     }
@@ -173,6 +177,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2024-09-02-preview' = {
       }
       tags: {
         workload: 'graphrag'
+        status: 'approved'
       }
       type: 'VirtualMachineScaleSets'
     }
